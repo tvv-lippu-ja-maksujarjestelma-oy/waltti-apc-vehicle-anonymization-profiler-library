@@ -12,7 +12,7 @@ numpy = "^1.24.2"
 numpyro = "^0.11.0"
 optuna = "^3.1.1"
 pandas = "^1.5.3"
-psycopg2 = "^2.9.6"
+psycopg2 = "^2.9.9"
 python = "^3.10"
 pyyaml = "^6.0"
 
