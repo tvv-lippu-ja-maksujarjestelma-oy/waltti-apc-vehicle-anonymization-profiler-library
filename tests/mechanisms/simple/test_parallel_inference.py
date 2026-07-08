@@ -2,6 +2,8 @@ import csv
 import pathlib
 import tempfile
 
+import os
+
 import optuna
 import optuna.storages
 from apc_anonymizer.mechanisms.simple import hyperparameter_optimization
@@ -9,7 +11,6 @@ from apc_anonymizer.mechanisms.simple import hyperparameter_optimization
 
 def test_fast_simple_run(mocker):
     output_filename = "volvo-8908rle.csv"
-    journal_filename = "journal.log"
     test_epsilon = 1e-5
     vehicle_model = {
         "outputFilenames": [output_filename],
@@ -35,32 +36,20 @@ def test_fast_simple_run(mocker):
         },
     }
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_filepath = tmp_dir + "/" + journal_filename
-
-        def create_study(vm, db_name):
-            storage = optuna.storages.JournalStorage(
-                optuna.storages.JournalFileStorage(tmp_filepath)
-            )
-            study = optuna.create_study(
-                study_name=vm["outputFilenames"][0],
-                direction="minimize",
-                storage=storage,
-                load_if_exists=True,
-            )
-            return study
-
-        mocker.patch(
-            "apc_anonymizer.mechanisms.simple.hyperparameter_optimization.create_study",
-            side_effect=create_study,
+        sqlite_path = f"{tmp_dir}/optuna.db"
+        storage_url = f"sqlite:///{sqlite_path}"
+        mocker.patch.dict(
+            os.environ,
+            {"APC_ANONYMIZER_DB_URL": storage_url},
+            clear=False,
         )
-
         hyperparameter_optimization.run_inference_in_parallel(
             inference_config, vehicle_model, "hyperparameter_opt", tmp_dir
         )
 
         tmp_dir_path = pathlib.Path(tmp_dir)
         files_in_tmp_dir = set((f.name for f in tmp_dir_path.iterdir()))
-        expected_files = set([output_filename, journal_filename])
+        expected_files = set([output_filename, "optuna.db"])
         assert files_in_tmp_dir == expected_files
 
         with open(tmp_dir_path / output_filename, newline="") as csvfile:

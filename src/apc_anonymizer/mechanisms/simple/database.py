@@ -1,8 +1,17 @@
 import logging
+import os
 import subprocess
 
 
+DB_URL_ENV_VARIABLE = "APC_ANONYMIZER_DB_URL"
+
+
 def prepare_database(db_name):
+    if os.environ.get(DB_URL_ENV_VARIABLE):
+        logging.info(
+            "Skip PostgreSQL startup because %s is defined", DB_URL_ENV_VARIABLE
+        )
+        return
     logging.info("Start PostgreSQL")
     subprocess.run(
         [
@@ -58,6 +67,11 @@ def prepare_database(db_name):
 
 
 def close_database():
+    if os.environ.get(DB_URL_ENV_VARIABLE):
+        logging.info(
+            "Skip PostgreSQL shutdown because %s is defined", DB_URL_ENV_VARIABLE
+        )
+        return
     logging.info("Stop PostgreSQL")
     subprocess.run(
         [
