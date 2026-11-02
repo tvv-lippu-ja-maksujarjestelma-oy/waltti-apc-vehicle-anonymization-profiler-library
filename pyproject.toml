@@ -7,6 +7,7 @@ readme = "README.md"
 packages = [{include = "apc_anonymizer", from = "src"}]
 
 [tool.poetry.dependencies]
+jaxlib = {version = ">=0.4.16,<=0.4.17", source = "jax-archive"}
 jsonschema = "^4.17.3"
 numpy = "^1.24.2"
 numpyro = "^0.11.0"
@@ -21,6 +22,12 @@ black = "^23.1.0"
 pytest = "^7.2.2"
 pytest-mock = "^3.11.1"
 ruff = "^0.0.257"
+
+# Archived CPU wheels keep the existing numerical-library versions installable.
+[[tool.poetry.source]]
+name = "jax-archive"
+url = "https://storage.googleapis.com/jax-releases/jax_releases.html"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]
