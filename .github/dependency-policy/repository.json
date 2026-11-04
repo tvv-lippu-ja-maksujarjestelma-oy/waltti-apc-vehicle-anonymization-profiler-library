@@ -1,0 +1,5 @@
+{
+  "baseBranch": "master",
+  "checks": ["Build, check, test, push", "CodeQL"],
+  "protectedChecks": []
+}
