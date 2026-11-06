@@ -199,3 +199,14 @@ Otherwise an attacker might be able to predict the produced randomness and break
 
 [1] Dwork, C., McSherry, F., Nissim, K., & Smith, A. (2006). Calibrating noise to sensitivity in private data analysis. In Theory of Cryptography: Third Theory of Cryptography Conference, TCC 2006, New York, NY, USA, March 4-7, 2006.  
 [2] Simson L. Garfinkel and Philip Leclerc. Randomness concerns when deploying differential privacy. In Proceedings of the 19th Workshop on Privacy in the Electronic Society, WPES’20, page 73–86, New York, NY, USA, 2020.
+
+### Portable local runs
+
+Set `APC_ANONYMIZER_DB_URL` to an Optuna-compatible database URL to use an
+existing database. The profiler then skips embedded PostgreSQL startup and
+shutdown. Provision the database before starting the profiler. Use a server
+database for parallel runs; SQLite requires `numberOfProcesses: 1`.
+
+Set a nonempty `OUTPUT_DIR` to override the configured output directory. Missing output
+directories are created automatically. On platforms without CPU affinity APIs,
+`one-per-core` uses the system CPU count (or one process if it is unavailable).
