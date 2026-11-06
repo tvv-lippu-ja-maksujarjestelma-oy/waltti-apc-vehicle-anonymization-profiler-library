@@ -15,6 +15,20 @@ import sqlalchemy
 
 from apc_anonymizer.mechanisms.simple import database, inference, initial
 
+DB_URL_ENV_VARIABLE = "APC_ANONYMIZER_DB_URL"
+OUTPUT_DIR_ENV_VARIABLE = "OUTPUT_DIR"
+
+
+def get_database_url(db_name):
+    env_url = os.environ.get(DB_URL_ENV_VARIABLE)
+    if env_url:
+        return env_url
+    return sqlalchemy.engine.URL.create(
+        drivername="postgresql+psycopg2",
+        username="postgres",
+        database=db_name,
+    )
+
 
 def get_min_and_max_index_of_ones(column):
     return np.flatnonzero(column)[np.array([0, -1])]
@@ -43,11 +57,7 @@ def calculate_distance_matrix(categories):
 
 
 def create_study(vehicle_model, db_name):
-    db_url = sqlalchemy.engine.URL.create(
-        drivername="postgresql+psycopg2",
-        username="postgres",
-        database=db_name,
-    )
+    db_url = get_database_url(db_name)
     storage = optuna.storages.RDBStorage(url=str(db_url))
     study = optuna.create_study(
         study_name=vehicle_model["outputFilenames"][0],
@@ -207,8 +217,8 @@ def run_inference(
             )
 
         # Store the learned probability table into a CSV file.
-
         directory = pathlib.Path(output_directory)
+        directory.mkdir(parents=True, exist_ok=True)
         prob_df = pd.DataFrame(final_ps, columns=categories_df.columns)
         for output_filename in vehicle_model["outputFilenames"]:
             prob_df.to_csv(
@@ -221,7 +231,10 @@ def run_inference(
 def get_parallel_process_count(inference_config):
     n_processes = inference_config["options"]["numberOfProcesses"]
     if n_processes == "one-per-core":
-        n_processes = len(os.sched_getaffinity(0))
+        if hasattr(os, "sched_getaffinity"):
+            n_processes = len(os.sched_getaffinity(0))
+        else:
+            n_processes = os.cpu_count() or 1
     return n_processes
 
 
@@ -287,6 +300,9 @@ def run_inference_for_all_vehicle_models(config):
     logging.info("Prepare database")
     db_name = "hyperparameter_opt"
     database.prepare_database(db_name)
+    output_directory = os.environ.get(
+        OUTPUT_DIR_ENV_VARIABLE, config["outputDirectory"]
+    )
     for vehicle_model in config["vehicleModels"]:
         logging.info(
             "Run inference for vehicle model "
@@ -296,7 +312,7 @@ def run_inference_for_all_vehicle_models(config):
             config["inference"],
             vehicle_model,
             db_name,
-            output_directory=config["outputDirectory"],
+            output_directory=output_directory,
         )
     logging.info("Shutdown database")
     database.close_database()
