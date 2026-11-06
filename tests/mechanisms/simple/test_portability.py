@@ -29,9 +29,10 @@ def test_process_count_without_affinity(monkeypatch, cpu_count, expected):
     assert hpo.get_parallel_process_count(config) == expected
 
 
-def test_output_directory_override(monkeypatch, mocker, tmp_path):
+@pytest.mark.parametrize("override", [True, False])
+def test_output_directory_override(monkeypatch, mocker, tmp_path, override):
     output = str(tmp_path / "nested" / "output")
-    monkeypatch.setenv("OUTPUT_DIR", output)
+    monkeypatch.setenv("OUTPUT_DIR", output if override else "")
     mocker.patch.object(database, "prepare_database")
     mocker.patch.object(database, "close_database")
     run = mocker.patch.object(hpo, "run_inference_in_parallel")
@@ -41,4 +42,5 @@ def test_output_directory_override(monkeypatch, mocker, tmp_path):
         "vehicleModels": [{"outputFilenames": ["test.csv"]}],
     }
     hpo.run_inference_for_all_vehicle_models(config)
-    assert run.call_args.kwargs["output_directory"] == output
+    expected = output if override else "default"
+    assert run.call_args.kwargs["output_directory"] == expected

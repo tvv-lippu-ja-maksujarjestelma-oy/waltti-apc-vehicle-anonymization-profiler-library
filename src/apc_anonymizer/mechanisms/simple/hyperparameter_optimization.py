@@ -300,8 +300,8 @@ def run_inference_for_all_vehicle_models(config):
     logging.info("Prepare database")
     db_name = "hyperparameter_opt"
     database.prepare_database(db_name)
-    output_directory = os.environ.get(
-        OUTPUT_DIR_ENV_VARIABLE, config["outputDirectory"]
+    output_directory = (
+        os.environ.get(OUTPUT_DIR_ENV_VARIABLE) or config["outputDirectory"]
     )
     for vehicle_model in config["vehicleModels"]:
         logging.info(

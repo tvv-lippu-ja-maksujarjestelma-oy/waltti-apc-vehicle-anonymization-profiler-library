@@ -204,8 +204,9 @@ Otherwise an attacker might be able to predict the produced randomness and break
 
 Set `APC_ANONYMIZER_DB_URL` to an Optuna-compatible database URL to use an
 existing database. The profiler then skips embedded PostgreSQL startup and
-shutdown. Provision the database before starting the profiler.
+shutdown. Provision the database before starting the profiler. Use a server
+database for parallel runs; SQLite requires `numberOfProcesses: 1`.
 
-Set `OUTPUT_DIR` to override the configured output directory. Missing output
+Set a nonempty `OUTPUT_DIR` to override the configured output directory. Missing output
 directories are created automatically. On platforms without CPU affinity APIs,
 `one-per-core` uses the system CPU count (or one process if it is unavailable).
