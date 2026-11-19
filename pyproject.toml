@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "apc_anonymizer", from = "src"}]
 
 [tool.poetry.dependencies]
-jaxlib = {version = ">=0.4.16,<=0.4.17", source = "jax-archive"}
+jaxlib = {version = ">=0.4.16,<=0.5.3", source = "jax-archive"}
 jsonschema = "^4.17.3"
 numpy = "^1.24.2"
 numpyro = "^0.11.0"
